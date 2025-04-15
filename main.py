@@ -2,7 +2,6 @@ import openai
 import pymongo
 import pyodbc
 import os
-import re
 
 # ------------------------
 # Setup Connections
@@ -31,7 +30,7 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 def fetch_transcript():
     """Fetch transcript from MongoDB by lecture_id."""
-    transcript_data = transcripts_collection.find_one({"lecture_id": 1})
+    transcript_data = transcripts_collection.find_one({"lecture_id": 2})
     return transcript_data["transcript"]
 
 SUMMARY_PROMPT = """
@@ -50,13 +49,13 @@ def generate_summary(transcript):
     """Generate a structured summary and list of topics from the transcript."""
     prompt = SUMMARY_PROMPT.format(transcript=transcript)
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You are an expert summarizer."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=300,
-        temperature=0.5
+        max_tokens=150,
+        temperature=0.1
     )
     summary_text = response['choices'][0]['message']['content'].strip()
     # Extract topics: expect each topic line to begin with "Topic"
@@ -153,10 +152,10 @@ def interview():
 
         conversation_log += f"Question {question_count + 1}: {question}\n"
         store_question(question)
-        print(f"\nQuestion {question_count + 1}: {question}")
+        print(f"\n{question}")
 
         # Get user's answer
-        user_response = input("Your answer: ").strip()
+        user_response = input("Answer: ").strip()
         conversation_log += f"Answer: {user_response}\n"
         store_user_response(user_response)
 
